@@ -6,7 +6,9 @@ and a material database in which every property is tracked to its source.
 
 ## Status
 
-Phase 1 skeleton, v0.1.0 — no calculations yet.
+Phase 2: engine load model (v0.2.0). Gas and inertia forces, rod and crankpin
+loads over the four-stroke cycle. Fatigue, stress and buckling are not yet
+implemented.
 
 ## Install
 
@@ -34,7 +36,9 @@ streamlit run app/Home.py
 
 ```
 src/efa/          core package (numpy, scipy only; never imports streamlit)
-  loads/          gas and inertia forces over the crank cycle
+  units.py        display-unit conversions
+  provenance.py   data status, sources and result notes
+  loads/          kinematics, gas and inertia forces, rod and crankpin loads
   stress/         nominal and equivalent stresses
   fatigue/        endurance limit, Marin factors, mean-stress correction, life
   components/     connecting rod, crankshaft, connecting-rod bolts
@@ -48,6 +52,13 @@ docs/             methods, worked examples, decisions, data policy
 examples/         example scripts and input files
 scripts/          repository checks
 ```
+
+## Documentation
+
+- Methods: [docs/methods/engine_loads.md](docs/methods/engine_loads.md)
+- Worked examples: [WE-01](docs/worked_examples/WE-01.md),
+  [WE-02](docs/worked_examples/WE-02.md)
+- Decisions: [docs/decisions](docs/decisions)
 
 ## Data policy
 

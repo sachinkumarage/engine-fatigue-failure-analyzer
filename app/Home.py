@@ -27,6 +27,15 @@ st.table(
             "Failure Analysis",
             "Materials",
         ],
-        "Planned phase": [2, 3, 4, 4, 4, 6, 7],
+        "Phase": [2, 3, 4, 4, 4, 6, 7],
+        "Status": [
+            "Available",
+            "Planned",
+            "Planned",
+            "Planned",
+            "Planned",
+            "Planned",
+            "Planned",
+        ],
     }
 )
