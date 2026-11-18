@@ -35,8 +35,8 @@ with st.sidebar:
     speed_rpm = st.number_input("Speed n [rpm]", min_value=1.0, value=4000.0)
     st.header("Masses [kg]")
     m_piston = st.number_input("Piston", min_value=0.001, value=0.40, format="%.3f")
-    m_pin = st.number_input("Gudgeon pin", min_value=0.001, value=0.10, format="%.3f")
-    m_rings = st.number_input("Rings", min_value=0.001, value=0.03, format="%.3f")
+    m_pin = st.number_input("Gudgeon pin", min_value=0.0, value=0.10, format="%.3f")
+    m_rings = st.number_input("Rings", min_value=0.0, value=0.03, format="%.3f")
     m_rod = st.number_input(
         "Connecting rod", min_value=0.001, value=0.55, format="%.3f"
     )
@@ -133,12 +133,4 @@ else:
     st.dataframe(table_out, hide_index=True)
 
 with st.expander("Result note: equations, validity and data status"):
-    note = result.note
-    st.markdown("**Equations used:** " + ", ".join(note.equation_ids))
-    st.markdown("**Validity:**\n" + "\n".join(f"- {v}" for v in note.validity_notes))
-    if note.verify_flags:
-        st.markdown("**Verify:**\n" + "\n".join(f"- {v}" for v in note.verify_flags))
-    st.markdown(
-        "**Input status:**\n"
-        + "\n".join(f"- {k}: `{v.value}`" for k, v in note.input_statuses.items())
-    )
+    st.markdown(result.note.as_markdown())

@@ -5,6 +5,42 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-19
+
+### Added
+
+- Stress module: axial, bending and torsional stress (S1), amplitude and mean
+  from cycle extremes or a history (S2), von Mises equivalent (S3).
+- Notch module: fatigue notch factor (N1), Neuber notch sensitivity (N2),
+  notched stresses with K_f on amplitude and mean.
+- Fatigue module:
+  - `marin`: `MarinFactor` with value, basis, status, source id and verify
+    flag; surface, size, load and reliability factors (F2–F5); steel
+    endurance estimate (F6); `endurance_limit` (F1) with a note listing every
+    factor.
+  - `mean_stress`: Goodman, Gerber, ASME elliptic, Langer (M1–M4), compressive
+    mean rule (M5), `assess` with local-yield warning, Haigh curves.
+  - `basquin`: `BasquinConstants` with valid life range; `life` and `strength`
+    with Morrow correction (B1, B2) and range warning.
+- `efa.buckling`: Euler, Johnson and transition slenderness (C1–C3),
+  `column_check`.
+- `TracedValue`, `ResultNote.warnings`, `ResultNote.verify` and
+  `ResultNote.as_markdown` in `efa.provenance`; `efa.sources`.
+- Exact piston acceleration (K3e) and the series deviation reported by
+  `evaluate_cycle` (`a_series_max_dev`, `a_series_max_dev_pct`,
+  `a_series_max_dev_theta_deg`).
+- Fatigue page with tabs for endurance limit, notch, mean stress (with Haigh
+  diagram), finite life and buckling.
+- `docs/sources.md`, methods `fatigue.md` and `buckling.md`, worked examples
+  WE-03 to WE-05 with golden tests, decision record 0002.
+- Unit conversions for MPa, GPa, mm², mm⁴ and √mm.
+
+### Changed
+
+- The λ > 0.35 verify flag is removed; the K3/K3e deviation is reported instead.
+- `m_pin` and `m_rings` may be zero (lumped into the piston mass).
+- The Engine Loads page shows the result note through `ResultNote.as_markdown`.
+
 ## [0.2.0] - 2026-11-18
 
 ### Added

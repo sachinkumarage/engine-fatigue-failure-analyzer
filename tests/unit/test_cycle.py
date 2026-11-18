@@ -109,8 +109,27 @@ def test_pressure_table_interpolation_modulo_720():
         ({"l_g": 0.200}, "l_g"),
         ({"l_g": 0.0}, "l_g"),
         ({"bore": -0.086}, "bore"),
+        ({"m_pin": -0.01}, "m_pin"),
+        ({"m_rings": -0.01}, "m_rings"),
+        ({"m_piston": 0.0}, "m_piston"),
+        ({"m_rod": 0.0}, "m_rod"),
     ],
 )
 def test_engine_spec_validation(overrides, match):
     with pytest.raises(ValueError, match=match):
         make_spec(**overrides)
+
+
+def test_pin_and_ring_masses_may_be_zero():
+    lumped = make_spec(m_piston=0.53, m_pin=0.0, m_rings=0.0)
+    split = make_spec()
+    assert np.allclose(evaluate_cycle(lumped).F_i, evaluate_cycle(split).F_i)
+
+
+def test_series_deviation_in_result_and_note():
+    res = evaluate_cycle(make_spec())
+    assert res.a_series_max_dev > 0
+    assert res.a_series_max_dev_theta_deg in (90.0, 270.0, 450.0, 630.0)
+    text = " ".join(res.note.validity_notes)
+    assert "Series acceleration (K3) deviates from exact (K3e) by at most" in text
+    assert not any("λ =" in f and "exceeds" in f for f in res.note.verify_flags)

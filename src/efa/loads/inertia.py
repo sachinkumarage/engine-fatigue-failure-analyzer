@@ -2,7 +2,13 @@
 
 from numpy.typing import ArrayLike
 
-from efa._checks import FloatOrArray, as_float_array, require_positive, to_output
+from efa._checks import (
+    FloatOrArray,
+    as_float_array,
+    require_non_negative,
+    require_positive,
+    to_output,
+)
 
 
 def rod_mass_split(m_rod: float, l_g: float, l_rod: float) -> tuple[float, float]:
@@ -42,12 +48,13 @@ def reciprocating_mass(
         m_rod,A (m_rod_a): reciprocating share of the rod mass [kg].
         m_rec: total reciprocating mass [kg].
 
-    Validity: all masses > 0; two-mass rod model.
+    Validity: m_piston > 0 and m_rod,A > 0; m_pin >= 0 and m_rings >= 0 (they
+    may be lumped into m_piston); two-mass rod model.
     """
     return (
         require_positive("m_piston", m_piston)
-        + require_positive("m_pin", m_pin)
-        + require_positive("m_rings", m_rings)
+        + require_non_negative("m_pin", m_pin)
+        + require_non_negative("m_rings", m_rings)
         + require_positive("m_rod_a", m_rod_a)
     )
 

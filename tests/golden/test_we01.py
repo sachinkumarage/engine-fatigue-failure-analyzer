@@ -2,6 +2,7 @@
 
 import math
 
+import numpy as np
 import pytest
 
 from efa.loads.inertia import (
@@ -15,8 +16,10 @@ from efa.loads.kinematics import (
     crank_radius,
     crank_ratio,
     piston_acceleration,
+    piston_acceleration_exact,
     piston_displacement,
     rod_angle,
+    series_acceleration_deviation,
 )
 
 
@@ -67,3 +70,22 @@ def test_angles(theta_deg, x, a_p, beta_deg, f_i):
     assert acc == close(a_p)
     assert math.degrees(rod_angle(th, R, L)) == close(beta_deg)
     assert inertia_force(M_REC, acc) == close(f_i)
+
+
+@pytest.mark.parametrize(
+    ("theta_deg", "expected"),
+    [(0, 22080.306573), (90, -5352.296646), (180, -11871.132566)],
+)
+def test_exact_acceleration(theta_deg, expected):
+    th = math.radians(theta_deg)
+    assert piston_acceleration_exact(th, R, L, OMEGA) == close(expected)
+
+
+def test_series_deviation_on_1_degree_grid():
+    theta = np.radians(np.arange(360.0))
+    dev, pct, theta_max = series_acceleration_deviation(theta, R, L, OMEGA)
+    assert dev == close(247.709642)
+    assert pct == close(1.12185780)
+    assert math.degrees(theta_max) == close(90.0)
+    peak = np.max(np.abs(piston_acceleration_exact(theta, R, L, OMEGA)))
+    assert peak == close(22080.306573)

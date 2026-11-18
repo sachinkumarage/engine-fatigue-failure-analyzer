@@ -1,4 +1,4 @@
-"""Slider-crank kinematics (equations K1 to K4).
+"""Slider-crank kinematics (equations K1 to K4 and K3e).
 
 Conventions (docs/decisions/0001-phase-0-decisions.md):
     θ is the crank angle from TDC [rad]; the piston acceleration is positive
@@ -105,6 +105,65 @@ def piston_acceleration(
     th = as_float_array("theta", theta)
     lam = r / l_rod
     return to_output(r * omega**2 * (np.cos(th) + lam * np.cos(2.0 * th)))
+
+
+def piston_acceleration_exact(
+    theta: ArrayLike, r: float, l_rod: float, omega: float
+) -> FloatOrArray:
+    """K3e: exact piston acceleration at constant crank speed.
+
+    a_exact = r ω² [cos θ + λ cos 2θ / √(1 − λ² sin² θ)
+                    + λ³ sin² 2θ / (4 (1 − λ² sin² θ)^(3/2))]
+
+    Symbols:
+        θ (theta): crank angle from TDC [rad].
+        r: crank radius [m].
+        l (l_rod): rod length, centre to centre [m].
+        ω (omega): constant crank angular speed [rad/s].
+        λ = r / l [-].
+        a_exact: piston acceleration, positive toward the crank [m/s²].
+
+    Validity: constant ω; in-line slider-crank without pin offset; 0 < r < l.
+    Source: second time derivative of K2.
+    """
+    r, l_rod = _check_rod(r, l_rod)
+    omega = require_positive("omega", omega)
+    th = as_float_array("theta", theta)
+    lam = r / l_rod
+    root = 1.0 - (lam * np.sin(th)) ** 2
+    bracket = (
+        np.cos(th)
+        + lam * np.cos(2.0 * th) / np.sqrt(root)
+        + lam**3 * np.sin(2.0 * th) ** 2 / (4.0 * root**1.5)
+    )
+    return to_output(r * omega**2 * bracket)
+
+
+def series_acceleration_deviation(
+    theta: ArrayLike, r: float, l_rod: float, omega: float
+) -> tuple[float, float, float]:
+    """Largest deviation of the K3 series from the exact K3e acceleration.
+
+    dev = max |a_exact − a_series| over the given angles;
+    pct = 100 dev / max |a_exact|.
+
+    Symbols:
+        θ (theta): crank angles [rad], 1-D grid.
+        r, l (l_rod): crank radius and rod length [m].
+        ω (omega): crank angular speed [rad/s].
+
+    Validity: the result describes only the evaluated grid.
+
+    Returns:
+        (dev [m/s²], pct [%], θ at the maximum deviation [rad]).
+    """
+    th = np.atleast_1d(as_float_array("theta", theta))
+    exact = np.atleast_1d(piston_acceleration_exact(th, r, l_rod, omega))
+    series = np.atleast_1d(piston_acceleration(th, r, l_rod, omega))
+    diff = np.abs(exact - series)
+    i = int(np.argmax(diff))
+    peak = float(np.max(np.abs(exact)))
+    return float(diff[i]), 100.0 * float(diff[i]) / peak, float(th[i])
 
 
 def rod_angle(theta: ArrayLike, r: float, l_rod: float) -> FloatOrArray:

@@ -30,7 +30,7 @@ st.table(
         "Phase": [2, 3, 4, 4, 4, 6, 7],
         "Status": [
             "Available",
-            "Planned",
+            "Available",
             "Planned",
             "Planned",
             "Planned",

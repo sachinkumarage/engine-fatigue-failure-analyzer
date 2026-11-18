@@ -12,7 +12,13 @@ from dataclasses import dataclass, field
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from efa._checks import FloatOrArray, as_float_array, require_positive, to_output
+from efa._checks import (
+    FloatOrArray,
+    as_float_array,
+    require_non_negative,
+    require_positive,
+    to_output,
+)
 from efa.loads.gas import PressureTable, gas_force, piston_area
 from efa.loads.inertia import (
     centrifugal_force,
@@ -26,11 +32,11 @@ from efa.loads.kinematics import (
     crank_ratio,
     piston_acceleration,
     rod_angle,
+    series_acceleration_deviation,
 )
 from efa.provenance import ResultNote, Status
 
 P_ATM = 101325.0
-LAMBDA_VERIFY_LIMIT = 0.35
 
 # --- Equations L4 to L6 ----------------------------------------------------
 
@@ -112,8 +118,8 @@ class EngineSpec:
         rod_length: Rod length l, centre to centre [m].
         speed_rpm: Crankshaft speed n [rpm].
         m_piston: Piston mass [kg].
-        m_pin: Gudgeon pin mass [kg].
-        m_rings: Ring-pack mass [kg].
+        m_pin: Gudgeon pin mass [kg], >= 0 (may be lumped into m_piston).
+        m_rings: Ring-pack mass [kg], >= 0 (may be lumped into m_piston).
         m_rod: Total connecting-rod mass [kg].
         l_g: Distance from big-end centre to rod centre of gravity [m].
         p_crankcase: Absolute crankcase pressure [Pa], default 1 atm.
@@ -139,13 +145,14 @@ class EngineSpec:
             "rod_length",
             "speed_rpm",
             "m_piston",
-            "m_pin",
-            "m_rings",
             "m_rod",
             "l_g",
             "p_crankcase",
         ):
             object.__setattr__(self, name, require_positive(name, getattr(self, name)))
+        for name in ("m_pin", "m_rings"):
+            value = require_non_negative(name, getattr(self, name))
+            object.__setattr__(self, name, value)
         r = self.stroke / 2.0
         if self.rod_length <= r:
             raise ValueError(
@@ -172,6 +179,9 @@ class CycleResult:
         beta [rad], F_rod [N], F_side [N], F_t [N], F_r [N], T [N·m].
     Scalar attributes:
         F_c: rotating-mass centrifugal force [N].
+        a_series_max_dev: max |a_exact (K3e) − a_p (K3)| on the grid [m/s²].
+        a_series_max_dev_pct: that deviation in % of the peak |a_exact|.
+        a_series_max_dev_theta_deg: angle of the maximum deviation [deg].
         F_rod_max_compression, theta_max_compression_deg: largest F_rod
             (compression positive) and its angle.
         F_rod_max_tension, theta_max_tension_deg: smallest F_rod (most
@@ -192,6 +202,9 @@ class CycleResult:
     F_r: NDArray[np.float64]
     T: NDArray[np.float64]
     F_c: float
+    a_series_max_dev: float
+    a_series_max_dev_pct: float
+    a_series_max_dev_theta_deg: float
     F_rod_max_compression: float
     theta_max_compression_deg: float
     F_rod_max_tension: float
@@ -235,22 +248,35 @@ def _evaluate(
     i_c = int(np.argmax(f_rod))
     i_t = int(np.argmin(f_rod))
 
+    dev, dev_pct, dev_theta = series_acceleration_deviation(theta, r, l_rod, omega)
+    dev_theta_deg = float(np.rad2deg(dev_theta))
+
     verify: list[str] = []
-    if lam > LAMBDA_VERIFY_LIMIT:
-        verify.append(
-            f"λ = {lam:.3f} exceeds {LAMBDA_VERIFY_LIMIT}: the K3 series error is "
-            "larger; verify accelerations with exact kinematics."
-        )
     if pressure_status is Status.ASSUMED:
         verify.append(
             "Cylinder pressure status is 'assumed': results are not loads of a "
             "real engine until cited or measured pressure data are used."
         )
     note = ResultNote(
-        equation_ids=("K1", "K3", "K4", "L1", "L2", "L3", "L4", "L5", "L6", "L7"),
+        equation_ids=(
+            "K1",
+            "K3",
+            "K3e",
+            "K4",
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5",
+            "L6",
+            "L7",
+        ),
         validity_notes=(
             f"K3 is a second-order series in λ; its error grows with λ "
             f"(λ = {lam:.4f} here).",
+            f"Series acceleration (K3) deviates from exact (K3e) by at most "
+            f"{dev_pct:.4g} % of peak |a_p| on the evaluated grid "
+            f"(max at {dev_theta_deg:g} deg).",
             "Constant crank speed; speed variation within a cycle is not modelled.",
             "Two-mass rod model (L2): rod moment of inertia is not preserved and "
             "rod whip bending is not included.",
@@ -279,6 +305,9 @@ def _evaluate(
         F_r=f_r,
         T=torque,
         F_c=f_c,
+        a_series_max_dev=dev,
+        a_series_max_dev_pct=dev_pct,
+        a_series_max_dev_theta_deg=dev_theta_deg,
         F_rod_max_compression=float(f_rod[i_c]),
         theta_max_compression_deg=float(theta_deg[i_c]),
         F_rod_max_tension=float(f_rod[i_t]),
@@ -288,7 +317,7 @@ def _evaluate(
 
 
 def evaluate_cycle(spec: EngineSpec, theta_deg: ArrayLike | None = None) -> CycleResult:
-    """Evaluate equations K1, K3, K4 and L1 to L7 over the crank cycle.
+    """Evaluate equations K1, K3, K3e, K4 and L1 to L7 over the crank cycle.
 
     Args:
         spec: Engine data; ``spec.pressure_table`` is required.

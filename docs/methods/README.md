@@ -6,4 +6,8 @@ app can be traced back to its derivation.
 
 | Document | Phase | Equations |
 |---|---|---|
-| [engine_loads.md](engine_loads.md) | 2 | K1–K4, L1–L7 |
+| [engine_loads.md](engine_loads.md) | 2 | K1–K4, K3e, L1–L7 |
+| [fatigue.md](fatigue.md) | 3 | S1–S3, N1–N2, F1–F6, M1–M5, B1–B2 |
+| [buckling.md](buckling.md) | 3 | C1–C3 |
+
+Shared sources are listed in [../sources.md](../sources.md).

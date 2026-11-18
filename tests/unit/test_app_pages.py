@@ -25,3 +25,19 @@ def test_engine_loads_table_and_peak_modes():
     at.radio[0].set_value("Peak only").run()
     assert not at.exception
     assert not at.error
+
+
+def test_fatigue_page_all_tabs_render_with_defaults():
+    at = AppTest.from_file(str(APP / "pages" / "2_Fatigue.py"), default_timeout=60)
+    at.run()
+    assert not at.exception
+    assert not at.error
+    assert [t.label for t in at.tabs] == [
+        "Endurance limit", "Notch", "Mean stress", "Finite life", "Buckling"
+    ]  # fmt: skip
+    labels = {m.label: m.value for m in at.metric}
+    assert labels["S_e"] == "227.56 MPa"
+    assert labels["K_f"] == "1.9592"
+    assert labels["Regime"] == "Johnson"
+    charts = at.get("vega_lite_chart")
+    assert len(charts) == 1 and "Haigh" in charts[0].proto.spec

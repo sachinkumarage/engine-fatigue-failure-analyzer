@@ -6,9 +6,10 @@ and a material database in which every property is tracked to its source.
 
 ## Status
 
-Phase 2: engine load model (v0.2.0). Gas and inertia forces, rod and crankpin
-loads over the four-stroke cycle. Fatigue, stress and buckling are not yet
-implemented.
+Phase 3: fatigue engine (v0.3.0). Engine load model (Phase 2) plus endurance
+limit with Marin factors, notch sensitivity, mean-stress criteria, Basquin and
+Morrow finite life, and Euler/Johnson column buckling. Component assessments
+(connecting rod, crankshaft, bolts) are not yet implemented.
 
 ## Install
 
@@ -37,9 +38,11 @@ streamlit run app/Home.py
 ```
 src/efa/          core package (numpy, scipy only; never imports streamlit)
   units.py        display-unit conversions
-  provenance.py   data status, sources and result notes
+  provenance.py   data status, sources, traced values and result notes
+  sources.py      shared source ids (docs/sources.md)
+  buckling.py     Euler and Johnson column buckling
   loads/          kinematics, gas and inertia forces, rod and crankpin loads
-  stress/         nominal and equivalent stresses
+  stress/         nominal and equivalent stresses, notch factors
   fatigue/        endurance limit, Marin factors, mean-stress correction, life
   components/     connecting rod, crankshaft, connecting-rod bolts
   fea/            simple beam models and result post-processing
@@ -55,9 +58,11 @@ scripts/          repository checks
 
 ## Documentation
 
-- Methods: [docs/methods/engine_loads.md](docs/methods/engine_loads.md)
-- Worked examples: [WE-01](docs/worked_examples/WE-01.md),
-  [WE-02](docs/worked_examples/WE-02.md)
+- Methods: [engine loads](docs/methods/engine_loads.md),
+  [fatigue](docs/methods/fatigue.md), [buckling](docs/methods/buckling.md)
+- Worked examples: [docs/worked_examples](docs/worked_examples/README.md)
+  (WE-01 to WE-05)
+- Sources: [docs/sources.md](docs/sources.md)
 - Decisions: [docs/decisions](docs/decisions)
 
 ## Data policy
