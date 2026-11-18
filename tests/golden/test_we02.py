@@ -86,3 +86,10 @@ def test_extremes(result):
     assert result.F_rod_max_tension == close(-6718.600100)
     assert result.theta_max_tension_deg == 0
     assert result.T_mean == close(38.641812)
+
+
+def test_series_acceleration_deviation(result):
+    assert result.a_series_max_dev == close(110.093174)
+    assert result.a_series_max_dev_theta_deg == 90.0
+    assert result.a_series_max_dev_pct == close(1.12185780)
+    assert any("by at most 1.122 % of peak" in v for v in result.note.validity_notes)

@@ -5,6 +5,44 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-19
+
+### Added
+
+- Component assessments in `efa.components`:
+  - `common`: `Material`, per-location fatigue procedure (notched histories →
+    S2 → S3 → mean-stress criteria → Basquin/Morrow life only when
+    n_Goodman < 1), governing item, Markdown report helpers.
+  - `conrod`: rod axial stress (R1), `RodSection`, `RodBuckling`,
+    `assess_conrod` with section fatigue, buckling in each plane and the
+    governing item.
+  - `crankshaft`: total radial load (X1), crankpin bending and torsion (X2,
+    X3), journal loads (X4), fillet stresses (X5), `CrankGeometry`,
+    `assess_crankshaft` for the crankpin and drive-side main-journal fillets.
+  - `conrod_bolt`: stiffness ratio, bolt and member forces, bolt stresses,
+    proof, separation and fatigue factors, big-end bolt load (J1–J7),
+    `BoltJoint`, `assess_bolts`.
+- Every assessment result has `as_markdown()` with inputs and statuses,
+  equations, results and warnings.
+- `CycleResult.r` and `CycleResult.omega`.
+- Connecting Rod, Crankshaft and Bolts pages with shared engine inputs,
+  results tables, governing item, stress histories, result note and report
+  download; shared input helpers in `app/ui_common.py`.
+- Method documents `conrod.md`, `crankshaft.md` (with the X3 derivation) and
+  `bolts.md`; worked examples WE-06 to WE-08 with golden tests; decision record
+  0003.
+
+### Fixed
+
+- Step 0 check of the WE-02 series-acceleration deviation: the code was
+  correct (1.12185780 % at 90°, 110.093174 m/s²); the v0.3.0 report had
+  quoted a wrong figure. Golden assertions added to WE-02.
+
+### Changed
+
+- The Engine Loads page uses the shared engine inputs and passes its pressure
+  table to the component pages.
+
 ## [0.3.0] - 2026-11-19
 
 ### Added

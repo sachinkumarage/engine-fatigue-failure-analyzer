@@ -41,3 +41,19 @@ def test_fatigue_page_all_tabs_render_with_defaults():
     assert labels["Regime"] == "Johnson"
     charts = at.get("vega_lite_chart")
     assert len(charts) == 1 and "Haigh" in charts[0].proto.spec
+
+
+@pytest.mark.parametrize(
+    ("page", "governing"),
+    [
+        ("3_Connecting_Rod.py", "Governing: Small-end transition fatigue, n = 1.514"),
+        ("4_Crankshaft.py", "Governing: crankpin fillet fatigue, n = 3.597"),
+        ("5_Bolts.py", "Governing: proof load, n = 1.644"),
+    ],
+)
+def test_component_pages_with_defaults(page, governing):
+    at = AppTest.from_file(str(APP / "pages" / page), default_timeout=60).run()
+    assert not at.exception
+    assert not at.error
+    assert [s.value for s in at.success] == [governing]
+    assert len(at.get("download_button")) == 1

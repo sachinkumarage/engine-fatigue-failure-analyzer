@@ -178,6 +178,8 @@ class CycleResult:
         theta_deg [deg], p_cyl [Pa], F_g [N], a_p [m/s²], F_i [N], F_p [N],
         beta [rad], F_rod [N], F_side [N], F_t [N], F_r [N], T [N·m].
     Scalar attributes:
+        r: crank radius [m] (K1).
+        omega: crank angular speed [rad/s] (K1).
         F_c: rotating-mass centrifugal force [N].
         a_series_max_dev: max |a_exact (K3e) − a_p (K3)| on the grid [m/s²].
         a_series_max_dev_pct: that deviation in % of the peak |a_exact|.
@@ -201,6 +203,8 @@ class CycleResult:
     F_t: NDArray[np.float64]
     F_r: NDArray[np.float64]
     T: NDArray[np.float64]
+    r: float
+    omega: float
     F_c: float
     a_series_max_dev: float
     a_series_max_dev_pct: float
@@ -304,6 +308,8 @@ def _evaluate(
         F_t=f_t,
         F_r=f_r,
         T=torque,
+        r=r,
+        omega=omega,
         F_c=f_c,
         a_series_max_dev=dev,
         a_series_max_dev_pct=dev_pct,

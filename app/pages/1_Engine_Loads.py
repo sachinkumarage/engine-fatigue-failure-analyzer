@@ -1,21 +1,24 @@
 """Engine Loads page: gas and inertia forces over the crank cycle."""
 
+import sys
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from ui_common import (  # noqa: E402
+    EXAMPLE_TABLE,
+    P_COL,
+    PRESSURE_TABLE_KEY,
+    THETA,
+    engine_inputs,
+)
 
 from efa.loads.cycle import EngineSpec, evaluate_cycle, peak_load
 from efa.loads.gas import PressureTable
 from efa.provenance import Status
-from efa.units import bar_to_pa, mm_to_m, pa_to_bar, rad_to_deg
-
-THETA = "θ [deg]"
-P_COL = "p_cyl absolute [bar]"
-EXAMPLE_TABLE = pd.DataFrame(
-    {
-        THETA: [0, 180, 300, 340, 360, 370, 380, 400, 450, 540, 720],
-        P_COL: [1.0, 1.0, 5.0, 25.0, 45.0, 60.0, 50.0, 30.0, 10.0, 3.0, 1.0],
-    }
-)
+from efa.units import bar_to_pa, pa_to_bar, rad_to_deg
 
 st.title("Engine Loads")
 st.caption(
@@ -24,42 +27,11 @@ st.caption(
     "(rod compression positive)."
 )
 
-with st.sidebar:
-    st.header("Engine data")
-    bore_mm = st.number_input("Bore B [mm]", min_value=1.0, value=86.0)
-    stroke_mm = st.number_input("Stroke S [mm]", min_value=1.0, value=86.0)
-    rod_mm = st.number_input("Rod length l [mm]", min_value=1.0, value=143.0)
-    l_g_mm = st.number_input(
-        "Big-end centre to rod CG, l_G [mm]", min_value=0.1, value=40.0
-    )
-    speed_rpm = st.number_input("Speed n [rpm]", min_value=1.0, value=4000.0)
-    st.header("Masses [kg]")
-    m_piston = st.number_input("Piston", min_value=0.001, value=0.40, format="%.3f")
-    m_pin = st.number_input("Gudgeon pin", min_value=0.0, value=0.10, format="%.3f")
-    m_rings = st.number_input("Rings", min_value=0.0, value=0.03, format="%.3f")
-    m_rod = st.number_input(
-        "Connecting rod", min_value=0.001, value=0.55, format="%.3f"
-    )
-    p_cc_bar = st.number_input(
-        "Crankcase pressure, absolute [bar]", min_value=0.01, value=1.01325,
-        format="%.5f",
-    )  # fmt: skip
+spec_kwargs = engine_inputs()
 
 mode = st.radio("Mode", ["Pressure table", "Peak only"], horizontal=True)
 
 try:
-    spec_kwargs = dict(
-        bore=mm_to_m(bore_mm),
-        stroke=mm_to_m(stroke_mm),
-        rod_length=mm_to_m(rod_mm),
-        speed_rpm=speed_rpm,
-        m_piston=m_piston,
-        m_pin=m_pin,
-        m_rings=m_rings,
-        m_rod=m_rod,
-        l_g=mm_to_m(l_g_mm),
-        p_crankcase=bar_to_pa(p_cc_bar),
-    )
     if mode == "Pressure table":
         st.subheader("Cylinder pressure table")
         st.caption("Default: synthetic example (assumed), not measured data.")
@@ -74,6 +46,7 @@ try:
             source_id,
             Status(status),
         )
+        st.session_state[PRESSURE_TABLE_KEY] = table
         result = evaluate_cycle(EngineSpec(**spec_kwargs, pressure_table=table))
     else:
         c1, c2 = st.columns(2)

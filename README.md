@@ -6,10 +6,11 @@ and a material database in which every property is tracked to its source.
 
 ## Status
 
-Phase 3: fatigue engine (v0.3.0). Engine load model (Phase 2) plus endurance
-limit with Marin factors, notch sensitivity, mean-stress criteria, Basquin and
-Morrow finite life, and Euler/Johnson column buckling. Component assessments
-(connecting rod, crankshaft, bolts) are not yet implemented.
+Phase 4: component assessments (v0.4.0). Engine load model (Phase 2), fatigue
+engine (Phase 3), and assessments of the connecting rod (section fatigue and
+buckling), the crankshaft (single-throw crankpin and main-journal fillets) and
+the connecting-rod bolts (joint model). FEA link and the failure-analysis
+workflow are not yet implemented.
 
 ## Install
 
@@ -44,7 +45,7 @@ src/efa/          core package (numpy, scipy only; never imports streamlit)
   loads/          kinematics, gas and inertia forces, rod and crankpin loads
   stress/         nominal and equivalent stresses, notch factors
   fatigue/        endurance limit, Marin factors, mean-stress correction, life
-  components/     connecting rod, crankshaft, connecting-rod bolts
+  components/     connecting rod, crankshaft and big-end bolt assessments
   fea/            simple beam models and result post-processing
   materials/      source-tracked material properties
   failure/        guided failure-analysis workflow
@@ -59,9 +60,11 @@ scripts/          repository checks
 ## Documentation
 
 - Methods: [engine loads](docs/methods/engine_loads.md),
-  [fatigue](docs/methods/fatigue.md), [buckling](docs/methods/buckling.md)
+  [fatigue](docs/methods/fatigue.md), [buckling](docs/methods/buckling.md),
+  [connecting rod](docs/methods/conrod.md),
+  [crankshaft](docs/methods/crankshaft.md), [bolts](docs/methods/bolts.md)
 - Worked examples: [docs/worked_examples](docs/worked_examples/README.md)
-  (WE-01 to WE-05)
+  (WE-01 to WE-08)
 - Sources: [docs/sources.md](docs/sources.md)
 - Decisions: [docs/decisions](docs/decisions)
 

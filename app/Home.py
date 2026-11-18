@@ -31,9 +31,9 @@ st.table(
         "Status": [
             "Available",
             "Available",
-            "Planned",
-            "Planned",
-            "Planned",
+            "Available",
+            "Available",
+            "Available",
             "Planned",
             "Planned",
         ],
